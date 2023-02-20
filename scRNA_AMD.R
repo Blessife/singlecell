@@ -493,6 +493,8 @@ save(seurat.integrated, file = 'AMDIntregate.RData')
 
 
 # Dimension Reduction  ----------------------------------------------------
+load("AMDIntregate.RData")
+
 
 ##################################################################
 ## Check the impact of cell cycle on the expression score 
@@ -580,11 +582,11 @@ save(tdata, file = "tdata.RData")
 # Clustering --------------------------------------------------------------
 
 ##Defining Cluster using graph based methods
-FindNeighbors(tdata,dims=1:15) -> kdata  ##--------kmeans = 20 
+FindNeighbors(tdata,dims=1:10) -> kdata  ##--------kmeans = 20 
 ## Distance to the nearest 20 neigbours
 kdata@graphs$integrated_snn[1:10,1:10]
 ##Segment the graph with FindCluster 
-FindClusters(kdata,resolution = 0.03) -> fdata
+FindClusters(kdata,resolution = 0.01) -> fdata
 
 
 ###Cluster metadata 
