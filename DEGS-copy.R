@@ -3,7 +3,7 @@
 library(devtools)
 install_github("immunogenomics/presto")
 
-
+#collectGarbage()
 
 # Load Library ------------------------------------------------------------
 
@@ -24,6 +24,7 @@ if (FALSE) {
 
 # Standard Single-cell Processing  -----------------------------------------
 
+load("AMDIntregate.RData")
 Retina <- seurat.integrated %>% 
           FindVariableFeatures(selection.method = "vst", nfeatures=2000) %>% 
           ScaleData() %>% 
@@ -37,7 +38,7 @@ DimPlot(Retina, reduction = "umap")
 
 # Cluster Annotation ------------------------------------------------------
 
-
+library(HGNChelper)
 
 source("https://raw.githubusercontent.com/IanevskiAleksandr/sc-type/master/R/gene_sets_prepare.R")
 
@@ -91,22 +92,24 @@ for(j in unique(sctype_scores$cluster)){
   Retina@meta.data$Cell_Identity[Retina@meta.data$seurat_clusters == j] = as.character(cl_type$type[1])
 }
 
-DimPlot(Retina, reduction = "tsne", label = T, repel = T, group.by = "Cell_Identity") + ggtitle("Retina cell communities")
-
-
+DimPlot(Retina, reduction = "umap", label = T, repel = T, group.by = "Cell_Identity") + ggtitle("Retina cell communities")
+backretina <- Retina
+Retina -> retina
 # Create a vector list of the cell types
 
 cell.types <- c("Rod bipolar cells","Muller cells","Cone bipolar cells","Horizontal cells",
                 "Unknown","Cone photoreceptor cells","Microglial cells","Horizontal cells",
                 "Pericytes","Astrocytes")
 
-names(cell.types) <- levels(Retina)
+names(cell.types) <- levels(retina)
 
-Retina <- RenameIdents(Retina, cell.types)
+retina <- RenameIdents(retina, cell.types)
 # Add the cell ident to the metadata
-Idents(Retina) -> cell_types
+Idents(retina) -> cell_types
+
+Retina <- retina
 Retina$cell_types <- cell_types
-load("Retina.RData")
+save(Retina, file = "Retinaplus.RData")
 
 # Custom function for visualisation
 
@@ -125,8 +128,9 @@ DimPlot(Retina, reduction = "umap", label = T, repel = T, ) + umap_theme() + NoL
 
 
 # Perform DEGs with wilcoxauROC -------------------------------------------
+#load("Retina.RData")
 options(digits=2)
-res <- wilcoxauc(Retina, 'seurat_clusters' , seurat_assay = 'RNA')
+res <- wilcoxauc(Retina, 'cell_types' , seurat_assay = 'RNA')
 
 # get the topmarker 
 
@@ -134,9 +138,9 @@ res %>%
   filter(logFC > log(1.2) & pct_in > 50 & padj < 0.05) %>% 
   group_by(group) %>% 
   arrange(desc(logFC), .by_group=T) %>% 
-  top_n(n=10, wt= logFC) -> res.wgcna
+  top_n(n=40, wt= logFC) -> res.wgcna
 
-#save(res.dotplot, file = "resdotplot.RData")
+save(res.down, file = "cellspecificmarker.RData")
 
 marker = top_markers(res, n=6, auc_min = 0.5, pct_in_min = 50)
 
@@ -166,18 +170,21 @@ p1 | p2
 
 # Visualize top genes in each cluster -------------------------------------
 
-
+colors <- c("red","blue")
 res.dotplot$feature <- as.factor(res.dotplot$feature)
 DotPlot(object = Retina, features = unique(res.dotplot$feature), cols = colors) + 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.text = element_text(size = 15)) +
+  theme(plot.title = element_text(hjust=0.5, face="bold", size = 25))+
+  ggtitle("Cell Specific Marker genes")
 
-colors <- c("red","blue")
+
 
 
 # WGCNA -------------------------------------------------------------------
 
 
-cellmarkers = res.wgcna$feature
+cellmarkers = res.down$feature
 
 library(hdWGCNA)
 # using the cowplot theme for ggplot
