@@ -138,7 +138,8 @@ res %>%
   filter(logFC > log(1.2) & pct_in > 50 & padj < 0.05) %>% 
   group_by(group) %>% 
   arrange(desc(logFC), .by_group=T) %>% 
-  top_n(n=40, wt= logFC) -> res.wgcna
+  top_n(n=150, wt= logFC) %>%  
+  filter(group == "Cone photoreceptor cells" | group == "Cone bipolar cells") -> res.cone
 
 save(res.down, file = "cellspecificmarker.RData")
 
