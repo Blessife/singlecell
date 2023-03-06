@@ -1,5 +1,5 @@
 
-load("Choriodplus.RData")
+load(url("https://amdproject-1.eu-central-1.linodeobjects.com/Choriodplus.RData"))
 
 
 
@@ -36,6 +36,7 @@ options(stringsAsFactors = FALSE);
 enableWGCNAThreads()
 
 dim(Choriod)
+DefaultAssay(Choriod)<-"integrated"
 # Get matrix from seurat object 
 ret.expr = GetAssayData(object = Choriod, slot = "data")
 # change column names 
@@ -118,7 +119,7 @@ geneTree = flashClust(as.dist(dissTOM),method="average");
 plot(geneTree, xlab="", sub="",cex=0.3);
 
 # Set the minimum module size
-minModuleSize = 20;
+minModuleSize = 30;
 
 # Module identification using dynamic tree cut
 
@@ -147,7 +148,9 @@ diss1=1-TOMsimilarityFromExpr(t.Choriod.d[,restGenes], power = softPower)
 
 colnames(diss1) =rownames(diss1) =colnames(t.Choriod.d)[restGenes]
 hier1=flashClust(as.dist(diss1), method="average" )
-plotDendroAndColors(hier1, dynamicColors[restGenes], "Dynamic Tree Cut", 
+
+dynamicMods1 = cutreeDynamic(dendro = hier1,  method="tree", minClusterSize = minModuleSize);
+plotDendroAndColors(hier1, dynamicMods1, "Dynamic Tree Cut", 
                     dendroLabels = FALSE, hang = 0.03, addGuide = TRUE, 
                     guideHang = 0.05, cex.axis = 3,
                     main = "Choriod Fibroblast Cell, n= 10,888", cex.main = 3)
@@ -158,7 +161,7 @@ diag(diss1) = NA;
 
 #Visualize the Tom plot. Raise the dissimilarity matrix to the power of 4 to bring out the module structure
 sizeGrWindow(7,7)
-TOMplot(diss1, hier1, as.character(dynamicColors[restGenes]))
+TOMplot(diss1, hier1, as.character(dynamicMods1))
 
 SubGeneNames <- colnames(t.Choriod.d)
 
@@ -227,7 +230,7 @@ active_plotdf = subset(plot_df, plot_df[,"variable"] %!in% passive)
 
 
 
-p <- ggplot(active_plotdf, aes(x= variable, y = value, fill = phenotype)) +
+p <- ggplot(plot_df, aes(x= variable, y = value, fill = phenotype)) +
   geom_boxplot(notch = FALSE) +
   RotatedAxis() + ylab("Module Eigengene") + xlab("") + 
   theme(panel.background = element_blank(),
