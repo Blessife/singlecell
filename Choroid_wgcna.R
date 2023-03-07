@@ -183,6 +183,7 @@ load("GeneModules.RData")
 MEs = MEList$eigengenes
 #plotEigengeneNetworks(MEs, "", marDendro = c(0,4,1,2), marHeatmap = c(3,4,1,2))
 MEs = orderMEs(MEs)
+
 meInfo<- data.frame(rownames(t.Choriod.d), MEs)
 colnames(meInfo)[1] = "SampleID"
 # Intramodular connectivity 
@@ -263,26 +264,23 @@ write.table(t.Choriod.s, file = "ChoriodMatrix.txt", sep="\t",
 
 
 
-# Data Prepartion  --------------------------------------------------------
+# Gene Significance  --------------------------------------------------------
 
-meanExpressionByArray = apply(t.Choriod.d,1,mean, na.rm=T)
-NumberMissingByArray = apply(is.na(data.frame(t.Choriod.d)),1,sum)
+y = choroid
 
-sizeGrWindow(9, 5)
-barplot(meanExpressionByArray,
-        xlab = "Sample", ylab = "Mean expression",
-        main ="Mean expression across samples",
-        cex.names = 0.7)
-
-# KeepArray= NumberMissingByArray<500
-# table(KeepArray)
-# datExpr=datExpr[KeepArray,]
-# y=y[KeepArray]
-# ArrayName[KeepArray]
-
-y= Choriod$phenotype
-
-# Standard gene screening based on marginal correlation 
-# Using Marginal Pearson to relate genes to phenotype 
+GS1=as.numeric(cor(y,datExpr, use="p"))
+GeneSignificance=abs(GS1)
+# Next module significance is defined as average gene significance.
+ModuleSignificance=tapply(GeneSignificance, colorh1, mean, na.rm=T)
 
 
+
+
+# Hub genes ---------------------------------------------------------------
+
+chooseTopHubInEachModule(
+  t.Choriod.d, 
+  dynamicColors, 
+  omitColors = "grey", 
+  power = 2, 
+  type = "signed")
