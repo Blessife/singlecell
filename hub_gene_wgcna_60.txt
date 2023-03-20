@@ -1,0 +1,8 @@
+"x"
+"1"/t"NFKBIZ"
+"2"/t"BTG2"
+"3"/t"EGR1"
+"4"/t"NR4A1"
+"5"/t"ZFP36"
+"6"/t"MAT2A"
+"7"/t"IER2"

@@ -188,7 +188,7 @@ meInfo<- data.frame(rownames(t.Choriod.d), MEs)
 colnames(meInfo)[1] = "SampleID"
 # Intramodular connectivity 
 #Calculation of (signed) eigengene-based connectivity, also known as module membership.
-KMes <- signedKME(t.Choriod.d, MEs, outputColumnName = "KME", corFnc = "bicor")
+KMes <- signedKME(t.Choriod.d, MEs, outputColumnName = "MM.", corFnc = "bicor")
 
 # complie into a module metadata table 
 geneInfo = as.data.frame(cbind(colnames(t.Choriod.d), dynamicColors, KMes))
@@ -258,20 +258,14 @@ write.table(t.Choriod.s, file = "ChoriodMatrix.txt", sep="\t",
 
 
 
-
-
-
-
-
-
 # Gene Significance  --------------------------------------------------------
 
-y = choroid
+y = as.numeric(as.factor(choriod_sub$phenotype))
 
-GS1=as.numeric(cor(y,datExpr, use="p"))
+GS1=as.numeric(cor(y,t.Choriod.d, use="p"))
 GeneSignificance=abs(GS1)
 # Next module significance is defined as average gene significance.
-ModuleSignificance=tapply(GeneSignificance, colorh1, mean, na.rm=T)
+ModuleSignificance=tapply(GeneSignificance, dynamicColors, mean, na.rm=T)
 
 
 
@@ -284,3 +278,33 @@ chooseTopHubInEachModule(
   omitColors = "grey", 
   power = 2, 
   type = "signed")
+
+
+
+# Get Hub genes -----------------------------------------------------------
+
+signif(cor(y,MEs, use="p"),2)
+
+cor.test(y, MEs$MEblue)
+
+p.values = corPvalueStudent(cor(y,MEs, use="p"), nSamples = length(y))
+
+
+
+# Intramodular connectivity -----------------------------------------------
+
+ADJ1=abs(cor(t.Choriod.d,use="p"))^6
+Alldegrees1=intramodularConnectivity(ADJ1, colorh1)
+head(Alldegrees1)
+
+
+# Finding genes with high gene significance and high intramodular  --------
+
+FilterGenes= abs(GS1)>0.05 & abs(KMes$KMEpink)>0.6
+table(FilterGenes)
+
+dimnames(data.frame(t.Choriod.d))[[2]][FilterGenes]->hub_gene
+hub_gene = hub_gene[!is.na(hub_gene)]
+hub_gene
+
+write.table(hub_gene, file = "hub_gene_wgcna_60.txt", sep = "/t")
