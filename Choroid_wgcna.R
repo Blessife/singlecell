@@ -218,9 +218,6 @@ plot_df<- reshape2::melt(plot_df, id.vars = c("phenotype", "cell_types"))
 plot_df$phenotype <- factor(plot_df$phenotype, levels = c("Early AMD", "Normal"))
 colrs <- sub("ME", "", as.character(levels(plot_df$variable)))
 
-# photo_cell = plot_df[plot_df$cell_types == "Cone photoreceptor cells",]
-# 
-# bipolar_cell = plot_df[plot_df$cell_types == "Cone bipolar cells",]
 
 passive = c("MEgreenyellow", "MEsalmon","MEmagenta", "MEred","MEyellow","MEblack","MEtan","MEgrey")
 
@@ -268,7 +265,9 @@ GeneSignificance=abs(GS1)
 ModuleSignificance=tapply(GeneSignificance, dynamicColors, mean, na.rm=T)
 
 
-
+sizeGrWindow(8,7)
+par(mfrow = c(1,1))
+plotModuleSignificance(GeneSignificance,dynamicColors)
 
 # Hub genes ---------------------------------------------------------------
 
