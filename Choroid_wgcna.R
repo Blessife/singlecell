@@ -14,7 +14,7 @@ if(length(new.packages)>0) install.packages(new.packages)
 BiocManager::install(c("GO.db", "preprocessCore", "impute"))
 
 install.packages("WGCNA")
-
+#install.packages("presto")
 
 # Library -----------------------------------------------------------------
 
@@ -22,7 +22,7 @@ install.packages("WGCNA")
 suppressWarnings({lapply(c("Seurat",'WGCNA','ggplot2',
                            "dbplyr","cowplot","patchwork",
                            "AnnotationDbi", "GO.db", "preprocessCore", "impute", "igraph",
-                           "tester","hdWGCNA","data.table","presto","dplyr"), library, character.only = T)})
+                           "tester","data.table","dplyr"), library, character.only = T)})
 
 
 suppressWarnings({lapply(c("matrixStats", "Hmisc", "splines", "foreach", "doParallel",
@@ -54,19 +54,12 @@ t.Choriod.d = t.Choriod.s[celllist,]
 
 #save(res.wgcna, file = "cellspecificmarkerwgcna.RData")
 
-# Checking for o
-
-# # Re-cluster samples
-# sampleTree2 = hclust(dist(datExpr), method = "average")
-# # Convert traits to a color representation: white means low, red means high, grey means missing entry
-# traitColors = numbers2colors(datTraits, signed = FALSE);
-# # Plot the sample dendrogram and the colors underneath.
-# plotDendroAndColors(sampleTree2, traitColors,
-#                     groupLabels = names(datTraits),
-#                     main = "Sample dendrogram and trait heatmap")
 
 
-# Choosing a soft-threshold to fit a scale-free topology to the network 
+
+# Choosing a soft-threshold to fit a scale-free topology --------
+
+ 
 #enableWGCNAThreads(nThreads = 8)
 
 powers = c(c(1:10), seq(from = 12, to=20, by=2));
@@ -77,7 +70,7 @@ sft=pickSoftThreshold(t.Choriod.d,dataIsExpr = TRUE,
                       networkType = "signed hybrid")
 
 
-# Visualise Result 
+# Visualize Result 
 
 # Plot the results
 sizeGrWindow(9, 5)
@@ -97,7 +90,10 @@ abline(h=0.80,col="red")
 plot(sft$fitIndices[,1], sft$fitIndices[,5],xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",main = paste("Mean connectivity"))
 text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
 
-# Generating adjaceny and TOM similarity 
+
+# Generating adjaceny and TOM similarity  ---------------------------------
+
+
 
 softPower = 2;
 
@@ -284,7 +280,7 @@ chooseTopHubInEachModule(
 
 signif(cor(y,MEs, use="p"),2)
 
-cor.test(y, MEs$MEblue)
+cor.test(y, MEs$MEgreen)
 
 p.values = corPvalueStudent(cor(y,MEs, use="p"), nSamples = length(y))
 
@@ -299,7 +295,7 @@ head(Alldegrees1)
 
 # Finding genes with high gene significance and high intramodular  --------
 
-FilterGenes= abs(GS1)>0.05 & abs(KMes$KMEpink)>0.6
+FilterGenes= abs(GS1)>0.05 & abs(KMes$MM.pink)>0.6
 table(FilterGenes)
 
 dimnames(data.frame(t.Choriod.d))[[2]][FilterGenes]->hub_gene
@@ -307,3 +303,24 @@ hub_gene = hub_gene[!is.na(hub_gene)]
 hub_gene
 
 write.table(hub_gene, file = "hub_gene_wgcna_60.txt", sep = "/t")
+
+
+Seu_hub = c("ATF3","BTG2","DUSP1","EGR1","FOS","FOSB","IER2","JUN","JUNB","NR4A1")
+
+
+# Compare hubgenes --------------------------------------------------------
+
+intersect(hub_gene, Seu_hub)
+
+  
+grid.newpage()  
+draw.pairwise.venn(area1 = length(hub_gene),                        # Create pairwise venn diagram
+                   area2 = length(Seu_hub),
+                   cross.area = length(intersect(hub_gene,Seu_hub)),
+                   fill = c("red", "blue"),
+                   lty = "blank",
+                   category = c("Hub genes in WGCNA", "Hub genes in PPI network"),
+                   cat.pos = c(345, 165))
+
+
+
