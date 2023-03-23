@@ -302,7 +302,7 @@ dimnames(data.frame(t.Choriod.d))[[2]][FilterGenes]->hub_gene
 hub_gene = hub_gene[!is.na(hub_gene)]
 hub_gene
 
-write.table(hub_gene, file = "hub_gene_wgcna_60.txt", sep = "/t")
+write.table(hub_gene, file = "hub_gene_wgcna_60.txt")
 
 
 Seu_hub = c("ATF3","BTG2","DUSP1","EGR1","FOS","FOSB","IER2","JUN","JUNB","NR4A1")
@@ -312,7 +312,7 @@ Seu_hub = c("ATF3","BTG2","DUSP1","EGR1","FOS","FOSB","IER2","JUN","JUNB","NR4A1
 
 intersect(hub_gene, Seu_hub)
 
-  
+library(VennDiagram)  
 grid.newpage()  
 draw.pairwise.venn(area1 = length(hub_gene),                        # Create pairwise venn diagram
                    area2 = length(Seu_hub),
@@ -320,7 +320,9 @@ draw.pairwise.venn(area1 = length(hub_gene),                        # Create pai
                    fill = c("red", "blue"),
                    lty = "blank",
                    category = c("Hub genes in WGCNA", "Hub genes in PPI network"),
-                   cat.pos = c(345, 165))
+                   cat.pos = c(345, 165),
+                   cex = 2,
+                   cat.cex = 1.5)
 
 
 
